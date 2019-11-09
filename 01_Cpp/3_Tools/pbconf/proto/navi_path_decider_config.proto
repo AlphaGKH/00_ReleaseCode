@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package planning;
+
+message NaviPathDeciderConfig {
+  uint32 min_path_length = 1;
+  uint32 min_look_forward_time = 2;
+  double default_min_smooth_init_y = 3;
+  double default_max_smooth_init_y = 4;
+  double default_theta_change_ratio = 5;
+  double max_lateral_distance = 6;
+  double path_l_cost = 7;
+  LateralShiftConfigTable later_shift_config_table = 8;
+}
+
+message LateralShiftConfigTable {
+  repeated ShiftConfig lateral_shift = 1;
+}
+
+message ShiftConfig {
+  double max_speed = 1;
+  double min_distance = 2;
+  double max_distance = 3;
+  double theta_change_ratio = 4; // unit:degree/m
+}
