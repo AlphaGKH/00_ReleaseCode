@@ -1,18 +1,28 @@
 #include <iostream>
+#include <mutex>
 #include <thread>
+
+#define DECLARE_SINGLETON(classname)                                      \
+ public:                                                                  \
+  static classname *Instance() {                                          \
+    static classname *instance = nullptr;                                 \
+    if (!instance) {                                                      \
+      static std::once_flag flag;                                         \
+      std::call_once(flag,                                                \
+                     [&] { instance = new (std::nothrow) classname(); }); \
+    }                                                                     \
+    return instance;                                                      \
+  }                                                                       \
+ private:                                                                 \
+  classname();                                                            \
+  classname(const classname &) = delete;                                  \
+  classname &operator=(const classname &) = delete;
+
+
 
 class TaskManager {
 public:
-  static TaskManager *Instance() {
-    if (!tm_) {
-      tm_ = new (std::nothrow) TaskManager();
-      std::cout << "Create Object" << std::endl;
-    } else {
-      std::cout << "The Object has existed!" << std::endl;
-    }
-
-    return tm_;
-  }
+  ~TaskManager();
 
 public:
   void PrintNumber() { std::cout << "Number is " << number_ << std::endl; }
@@ -23,14 +33,8 @@ public:
   }
 
 private:
-  TaskManager();
-  TaskManager(const TaskManager &) = delete;
-  TaskManager &operator=(const TaskManager &) = delete;
-
-private:
   double number_ = 0;
-
-  static TaskManager *tm_;
+  DECLARE_SINGLETON(TaskManager)
 };
 
 TaskManager::TaskManager() {
@@ -38,7 +42,7 @@ TaskManager::TaskManager() {
   std::this_thread::sleep_for(std::chrono::duration<int>(1));
 }
 
-TaskManager *TaskManager::tm_ = nullptr;
+TaskManager::~TaskManager() {}
 
 void ThreadFunc(const double &number) {
   TaskManager::Instance()->SetNumber(number);
