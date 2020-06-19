@@ -477,7 +477,7 @@ Set number: Set number: 10.520.6
 饿汉模式更加适合于访问单例对象的线程非常多的情况
 
 ## 4. **Apollo中的单例模式**
-apollo项目中的单例模式是使用`call_once`实现的线程安全饿汉式单例.
+apollo项目中的单例模式是使用`call_once`实现的线程安全懒汉式单例.
 ```C++
 #include <iostream>
 #include <mutex>
