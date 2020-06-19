@@ -30,23 +30,23 @@ public:
 
     bool GetPbMsgFromCfgFile(CfgMsgType* cfg_msg, const std::string& cfg_file){
         return GetPbMsgFromASCIIFile(cfg_msg,cfg_file) ||
-               GetPbMsgFromBinaryFile(cfg_msg,cfg_file);
+                GetPbMsgFromBinaryFile(cfg_msg,cfg_file);
     }
 
 
     bool SetPbMsgToASCIIFile(const CfgMsgType &message, const std::string &file_name) {
-      int fd = open(file_name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRWXU);
-      if (fd < 0) {
-        std::cout << "Unable to open file " << file_name << " to write.";
-        return false;
-      }
-      return SetPbMsgToASCIIFile(message, fd);
+        int fd = open(file_name.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRWXU);
+        if (fd < 0) {
+            std::cout << "Unable to open file " << file_name << " to write.";
+            return false;
+        }
+        return SetPbMsgToASCIIFile(message, fd);
     }
 
     bool SetPbMsgToBinaryFile(const CfgMsgType &message,const std::string &file_name) {
-      std::fstream output(file_name,
-                          std::ios::out | std::ios::trunc | std::ios::binary);
-      return message.SerializeToOstream(&output);
+        std::fstream output(file_name,
+                            std::ios::out | std::ios::trunc | std::ios::binary);
+        return message.SerializeToOstream(&output);
     }
 
 private:
@@ -88,18 +88,18 @@ private:
     }
 
     bool SetPbMsgToASCIIFile(const CfgMsgType &message, int file_descriptor) {
-      using google::protobuf::TextFormat;
-      using google::protobuf::io::FileOutputStream;
-      using google::protobuf::io::ZeroCopyOutputStream;
-      if (file_descriptor < 0) {
-        std::cout << "Invalid file descriptor.";
-        return false;
-      }
-      ZeroCopyOutputStream *output = new FileOutputStream(file_descriptor);
-      bool success = TextFormat::Print(message, output);
-      delete output;
-      close(file_descriptor);
-      return success;
+        using google::protobuf::TextFormat;
+        using google::protobuf::io::FileOutputStream;
+        using google::protobuf::io::ZeroCopyOutputStream;
+        if (file_descriptor < 0) {
+            std::cout << "Invalid file descriptor.";
+            return false;
+        }
+        ZeroCopyOutputStream *output = new FileOutputStream(file_descriptor);
+        bool success = TextFormat::Print(message, output);
+        delete output;
+        close(file_descriptor);
+        return success;
     }
 };
 

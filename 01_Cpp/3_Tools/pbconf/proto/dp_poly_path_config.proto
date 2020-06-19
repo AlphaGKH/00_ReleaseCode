@@ -1,28 +1,6 @@
-syntax = "proto3";
-
-package planning;
+syntax = "proto2";
 
 message DpPolyPathConfig {
-  uint32 sample_points_num_each_level = 1;
-  double step_length_max = 2;
-  double step_length_min = 3;
-  double lateral_sample_offset = 4;
-  double lateral_adjust_coeff = 5;
-  // Trajectory Cost Config
-  double eval_time_interval = 6;
-  double path_resolution = 7;
-  double obstacle_ignore_distance = 8;
-  double obstacle_collision_distance = 9;
-  double obstacle_risk_distance = 10;
-  double obstacle_collision_cost = 11;
-  double path_l_cost = 12;
-  double path_dl_cost = 13;
-  double path_ddl_cost = 14;
-  double path_l_cost_param_l0 = 15;
-  double path_l_cost_param_b = 16;
-  double path_l_cost_param_k = 17;
-  double path_out_lane_cost = 18;
-  double path_end_l_cost = 19;
-  double sidepass_distance = 20;
-  uint32 navigator_sample_num_each_level = 21;
+  optional int32 sample_points_num_each_level = 1;
+  optional double step_length_max = 2;
 }

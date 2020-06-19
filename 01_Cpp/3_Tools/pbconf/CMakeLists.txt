@@ -1,27 +1,20 @@
-cmake_minimum_required(VERSION 3.5)
-
+cmake_minimum_required(VERSION 3.10)
 project(pbconf)
-
 add_compile_options(-std=c++11)
 
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
 find_package(Protobuf REQUIRED)
+include_directories(${PROTOBUF_INCLUDE_DIR})
+link_directories(${PROTOBUF_LIB_DIR})
 
-if(PROTOBUF_FOUND)
-    message(STATUS "protobuf library found")
-else()
-    message(FATAL_ERROR "protobuf library is needed but cant be found")
-endif()
-
-include_directories(./
-    )
+file(GLOB CONF_PROTO_SRCS proto/*.proto)
+PROTOBUF_GENERATE_CPP(PROTO_SRCS PROTO_HDRS ${CONF_PROTO_SRCS})
 
 set(SRC_FILE
     main.cpp
-    proto/dp_poly_path_config.pb.cc
-    proto/navi_path_decider_config.pb.cc
-    proto/planner.pb.cc
+    ${PROTO_SRCS}
     )
-
 
 add_executable(${PROJECT_NAME} ${SRC_FILE})
 
