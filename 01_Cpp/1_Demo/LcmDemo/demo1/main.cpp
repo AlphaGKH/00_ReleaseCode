@@ -3,7 +3,9 @@
 #include "exlcm/example_t.hpp"
 
 #include <iostream>
-#include <unistd.h>
+#include <sys/time.h>
+#include <chrono>
+#include <thread>
 
 int main(int argc, char **argv)
 {
@@ -35,13 +37,14 @@ int main(int argc, char **argv)
 
     while (true) {
         std::cout << "Publish: " << count << std::endl;
-        my_data.timestamp = count;
+        struct timeval tv;
+        gettimeofday(&tv,NULL);
+
+        my_data.timestamp = tv.tv_sec*1000000 + tv.tv_usec;
         count ++;
         lcm.publish("EXAMPLE", &my_data);
-        sleep(2);
+        std::this_thread::sleep_for(std::chrono::duration<double>(0.1));
     }
-
-
 
     return 0;
 }
