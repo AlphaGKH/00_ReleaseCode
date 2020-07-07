@@ -9,6 +9,9 @@ include_directories(./)
 
 set (SRCS
     main.cpp
+    time/duration.cpp
+    time/time.cpp
+    time/rate.cpp
     )
 
 add_executable(demo2 ${SRCS})

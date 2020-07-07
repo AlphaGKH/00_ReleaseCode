@@ -1,12 +1,13 @@
-﻿#include <stdio.h>
-
-#include <lcm/lcm-cpp.hpp>
-#include "exlcm/example_t.hpp"
-
-#include <iostream>
+﻿#include <iostream>
 #include <thread>
 #include <mutex>
-#include <sys/time.h>
+#include <list>
+
+#include "lcm/lcm-cpp.hpp"
+
+#include "exlcm/example_t.hpp"
+
+#include "time/rate.h"
 
 class Listener
 {
@@ -20,16 +21,17 @@ public:
         if(listener_thread_ && listener_thread_->joinable()){
             listener_thread_->join();
         }
+
+        lcm_ = nullptr;
     }
 
-    void OnMessage(const lcm::ReceiveBuffer *rbuf, const std::string &chan,
-                   const exlcm::example_t *msg){
-            std::lock_guard<std::mutex> lock(count_mutex_);
-            msg_ = *msg;
+    std::shared_ptr<exlcm::example_t> GetLatestObserved() const {
+        std::lock_guard<std::mutex> lock(msg_mutex_);
+        if (observed_queue_.empty()) {
+            return nullptr;
+        }
 
-//            struct timeval tv;
-//            gettimeofday(&tv,NULL);
-//            std::cout << "inner delay: " << (tv.tv_sec*1000000 + tv.tv_usec - msg->timestamp) << std::endl;
+        return observed_queue_.front();
     }
 
     bool Init(std::string channel_name){
@@ -40,11 +42,6 @@ public:
 
         lcm_.subscribe(channel_name, &Listener::OnMessage,this);
         return true;
-    }
-
-    void GetMsg(exlcm::example_t* msg){
-        std::lock_guard<std::mutex> lock(count_mutex_);
-        *msg = msg_;
     }
 
     void Start(){
@@ -65,12 +62,24 @@ public:
 
     }
 
+    void Observe() {
+        std::lock_guard<std::mutex> lock(msg_mutex_);
+        observed_queue_ = received_queue_;
+
+        return;
+    }
+
+    bool Empty() const {
+        std::lock_guard<std::mutex> lock(msg_mutex_);
+        return received_queue_.empty();
+    }
+
 private:
     void ListenerRun(){
         while (!listener_thread_stoped_) {
             std::this_thread::yield();
 //            std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(50));
-            int res = lcm_.handleTimeout(500);
+            int res = lcm_.handleTimeout(200);
             if (res > 0) {
                 continue;
             }
@@ -83,15 +92,47 @@ private:
         }
     }
 
+    void OnMessage(const lcm::ReceiveBuffer *rbuf, const std::string &chan,
+                   const exlcm::example_t *msg){
+
+            auto msg_ptr = std::make_shared<exlcm::example_t>(*msg);
+            Enqueue(msg_ptr);
+
+//            uint64_t delay_time = Time::Now().ToNanosecond() - msg_ptr->timestamp;
+
+//            std::cout << "delay time: " << delay_time << std::endl;
+
+    }
+
+    void Enqueue(const std::shared_ptr<exlcm::example_t>& msg_ptr){
+        if(depth_ == 0){
+            return;
+        }
+
+        std::lock_guard<std::mutex> lock(msg_mutex_);
+
+        received_queue_.push_front(msg_ptr);
+
+        while (received_queue_.size() > depth_) {
+            received_queue_.pop_back();
+        }
+
+    }
+
+
+
 private:
     lcm::LCM lcm_;
-    std::mutex count_mutex_;
-    exlcm::example_t msg_;
+    mutable std::mutex msg_mutex_;
 
     bool listener_thread_stoped_ = false;
     std::unique_ptr<std::thread> listener_thread_;
 
     bool is_inited_ = false;
+
+    std::list<std::shared_ptr<exlcm::example_t>> received_queue_;
+    std::list<std::shared_ptr<exlcm::example_t>> observed_queue_;
+    uint64_t depth_ = 10;
 
 };
 
@@ -136,23 +177,31 @@ public:
 private:
 
     bool RunOnce(){
-        exlcm::example_t msg;
-        listener_->GetMsg(&msg);
 
-        struct timeval tv;
-        gettimeofday(&tv,NULL);
-        std::cout << "time_delay: " << (tv.tv_sec*1000000 + tv.tv_usec - msg.timestamp) << std::endl;
+        listener_->Observe();
+
+        if(listener_->Empty()){
+            return false;
+        }
+
+        auto msg = listener_->GetLatestObserved();
+
+        uint64_t delay_time = Time::Now().ToNanosecond() - msg->timestamp;
+
+        std::cout << "delay time: " << delay_time << std::endl;
+
         return true;
     }
 
     void ProcessRun() {
+        Rate rate(10.0);
         while (!processs_thread_stoped_) {
             std::this_thread::yield();
-            std::this_thread::sleep_for(std::chrono::duration<double, std::milli>(100));
             if (!RunOnce()) {
                 std::cout << "Fail Process!" << std::endl;
                 continue;
             }
+            rate.Sleep();
         }
     }
 

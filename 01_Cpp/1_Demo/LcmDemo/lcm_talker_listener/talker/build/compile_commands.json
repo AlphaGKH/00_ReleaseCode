@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/dh/Documents/lcm_talker_listener/talker/build",
+  "command": "/usr/bin/g++-7    -g   -o CMakeFiles/Talker.dir/main.cpp.o -c /home/dh/Documents/lcm_talker_listener/talker/main.cpp",
+  "file": "/home/dh/Documents/lcm_talker_listener/talker/main.cpp"
+}
+]

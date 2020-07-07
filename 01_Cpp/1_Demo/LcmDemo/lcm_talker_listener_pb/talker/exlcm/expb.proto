@@ -1,0 +1,9 @@
+syntax = "proto2";
+
+package example;
+
+message pos {
+    optional int64 index  = 1;
+    optional double x = 2;
+    optional double y = 3;
+}   
