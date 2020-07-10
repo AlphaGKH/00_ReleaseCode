@@ -1,0 +1,11 @@
+syntax = "proto2";
+
+package dharma.control;
+
+import "modules/common/proto/header.proto";
+
+message Command {
+    optional dharma.common.Header header = 1;
+    optional double speed = 2;
+
+}

@@ -1,0 +1,11 @@
+syntax = "proto2";
+
+package dharma.planning;
+
+import "modules/common/proto/header.proto";
+
+message ADCTrajectory {
+    optional dharma.common.Header header = 1;
+    optional double total_path_length = 2;
+
+}
